@@ -3,7 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const bcrypt = require('bcryptjs');
-const { pool, initSchema } = require('./db');
+const { pool, initSchema, storage } = require('./db');
 const { rankByScore, rankByGrowth, WEIGHTS } = require('./scoring');
 
 const app = express();
@@ -49,7 +49,7 @@ app.get('/health', (_req, res) => {
 
 // ---------- Public leaderboard ----------
 app.get('/', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM creators');
+  const rows = storage.creators.length ? storage.creators : (await pool.query('SELECT * FROM creators')).rows;
   const view = req.query.view === 'growth' ? 'growth' : 'score';
   const ranked = view === 'growth' ? rankByGrowth(rows) : rankByScore(rows);
   res.render('public', { creators: ranked, view, weights: WEIGHTS });
@@ -153,7 +153,9 @@ async function startServer() {
     });
   } catch (err) {
     console.error('Failed to initialize database schema:', err);
-    process.exit(1);
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Creator Climb running on port ${PORT}`);
+    });
   }
 }
 

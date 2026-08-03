@@ -1,13 +1,32 @@
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
-    ? { rejectUnauthorized: false }
-    : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
-});
+const useDatabase = Boolean(process.env.DATABASE_URL);
+
+let pool;
+let storage = { creators: [], scoreHistory: [] };
+
+if (useDatabase) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
+      ? { rejectUnauthorized: false }
+      : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
+  });
+} else {
+  pool = {
+    async query() {
+      return { rows: [] };
+    }
+  };
+}
 
 async function initSchema() {
+  if (!useDatabase) {
+    storage.creators = [];
+    storage.scoreHistory = [];
+    return;
+  }
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS creators (
       id SERIAL PRIMARY KEY,
@@ -39,4 +58,4 @@ async function initSchema() {
   `);
 }
 
-module.exports = { pool, initSchema };
+module.exports = { pool, initSchema, storage };
