@@ -1,0 +1,9 @@
+{
+  "name": "creator-climb-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix creator-climb install",
+    "start": "node creator-climb/server.js"
+  }
+}
