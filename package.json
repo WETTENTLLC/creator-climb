@@ -5,5 +5,9 @@
   "scripts": {
     "postinstall": "npm --prefix creator-climb install",
     "start": "node creator-climb/server.js"
-  }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.8.2"
 }

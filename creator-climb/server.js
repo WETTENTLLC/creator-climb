@@ -7,8 +7,13 @@ const { pool, initSchema } = require('./db');
 const { rankByScore, rankByGrowth, WEIGHTS } = require('./scoring');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
+app.set('trust proxy', 1);
+
+if (!process.env.DATABASE_URL) {
+  console.warn('WARNING: DATABASE_URL is not set. Attach a Postgres database before deploying.');
+}
 if (!process.env.ADMIN_PASSWORD) {
   console.warn('WARNING: ADMIN_PASSWORD is not set. Set it in your environment before deploying.');
 }
@@ -37,6 +42,10 @@ function requireAuth(req, res, next) {
   if (req.session && req.session.isAdmin) return next();
   return res.redirect('/login');
 }
+
+app.get('/health', (_req, res) => {
+  res.status(200).send('ok');
+});
 
 // ---------- Public leaderboard ----------
 app.get('/', async (req, res) => {
@@ -134,11 +143,27 @@ app.post('/admin/snapshot', requireAuth, async (req, res) => {
   res.redirect('/admin');
 });
 
-initSchema()
-  .then(() => {
-    app.listen(PORT, () => console.log(`Creator Climb running on port ${PORT}`));
-  })
-  .catch(err => {
+let server;
+
+async function startServer() {
+  try {
+    await initSchema();
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Creator Climb running on port ${PORT}`);
+    });
+  } catch (err) {
     console.error('Failed to initialize database schema:', err);
     process.exit(1);
-  });
+  }
+}
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  if (server) {
+    server.close(() => process.exit(0));
+  } else {
+    process.exit(0);
+  }
+});
+
+startServer();
