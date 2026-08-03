@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Climb — Live Rankings</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand-row">
+    <div class="brand">
+      <span class="brand-mark display">CREATOR CLIMB</span>
+      <span class="brand-sub">live rankings</span>
+    </div>
+    <div class="top-actions">
+      <a href="/login" class="btn-ghost">Sign in to update</a>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <a href="/" class="nav-btn active">Leaderboard</a>
+</nav>
+
+<main>
+  <h2 class="section-title">Top <%= creators.length %>, ranked by <%= view === 'growth' ? '24h growth rate' : 'weighted score' %></h2>
+  <p class="section-desc">
+    <% if (view === 'growth') { %>
+      Sorted purely by growth rate — this is who's rising fastest right now, regardless of size.
+    <% } else { %>
+      A blend of average viewers, hours watched, growth rate, monetization signal, and community activity — so a smaller creator gaining ground can outrank a bigger, flatter one.
+    <% } %>
+  </p>
+
+  <div class="chip-row">
+    <a href="/?view=score" class="chip-btn <%= view === 'score' ? 'active' : '' %>">Score leaderboard</a>
+    <a href="/?view=growth" class="chip-btn <%= view === 'growth' ? 'active' : '' %>">Growth leaderboard</a>
+  </div>
+
+  <% if (view === 'score') { %>
+  <div class="formula-box">
+    <b>Scoring model:</b> <%= Math.round(weights.avgViewers*100) %>% avg viewers, <%= Math.round(weights.hoursWatched*100) %>% hours watched, <%= Math.round(weights.growthRate*100) %>% growth rate, <%= Math.round(weights.monetization*100) %>% monetization signal, <%= Math.round(weights.community*100) %>% community activity. Each metric is scaled against the strongest creator on this board, so scores stay meaningful as the roster changes.
+  </div>
+  <% } %>
+
+  <% if (creators.length === 0) { %>
+    <div class="empty-state">
+      <h3>No creators on the board yet</h3>
+      <p>Sign in to add the first one.</p>
+      <a href="/login" class="btn-primary">Sign in</a>
+    </div>
+  <% } else { %>
+    <% creators.forEach((c, i) => { %>
+      <div class="board-row <%= i < 3 ? 'top3' : '' %>">
+        <div class="rank-num"><%= i + 1 %></div>
+        <div class="creator-info">
+          <div class="avatar" style="background:<%= ({Twitch:'#9147FF',YouTube:'#FF3D3D',TikTok:'#25F4EE',Instagram:'#E1306C'})[c.platform] || '#555' %>"><%= (c.name || '??').slice(0,2).toUpperCase() %></div>
+          <div>
+            <div class="creator-name"><%= c.name %> <% if (c.live) { %><span class="live-badge">LIVE</span><% } %></div>
+            <div class="creator-sub"><%= c.platform %> · <%= c.category || '—' %></div>
+          </div>
+        </div>
+        <div class="stat-col hide-mobile">
+          <div class="stat-label">Followers</div>
+          <div><%= Number(c.followers).toLocaleString() %></div>
+        </div>
+        <div class="stat-col hide-mobile">
+          <div class="stat-label">24h growth</div>
+          <div class="<%= Number(c.growth_rate) >= 0 ? 'delta-up' : 'delta-down' %>">
+            <%= Number(c.growth_rate) >= 0 ? '▲' : '▼' %> <%= Math.abs(Number(c.growth_rate)) %>%
+          </div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-label"><%= view === 'growth' ? 'Streak' : 'Score' %></div>
+          <div><%= view === 'growth' ? (c.streak || 0) + 'd' : c.score %></div>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</main>
+
+</body>
+</html>

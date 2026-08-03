@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Creator Climb</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <h2 class="display">CREATOR CLIMB</h2>
+    <% if (error) { %>
+      <div class="error-msg"><%= error %></div>
+    <% } %>
+    <form method="POST" action="/login">
+      <div class="field">
+        <label for="password">Admin password</label>
+        <input type="password" id="password" name="password" autofocus required>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%;">Sign in</button>
+    </form>
+    <p style="margin-top:16px; font-size:12px;"><a href="/" style="color:var(--text-dim);">← Back to public leaderboard</a></p>
+  </div>
+</div>
+</body>
+</html>
